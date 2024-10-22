@@ -106,7 +106,13 @@ void NodeConfiguration::fromRosParam(
   {
     PublisherConfiguration publisherConfig;
 
-    publisherConfig.rigidBodyId = std::atoi(prefix.substr(rosparam::keys::RigidBodies.length() + 1, 1).c_str());
+    size_t dot_pos = prefix.find_last_of('.');
+    if (dot_pos != std::string::npos) {
+        publisherConfig.rigidBodyId = std::stoi(prefix.substr(dot_pos + 1));
+    } else {
+        RCLCPP_WARN(node->get_logger(), "Failed to parse rigid body ID from prefix: %s", prefix.c_str());
+        continue;
+    }
 
     auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
     param_desc.read_only = true;
