@@ -180,6 +180,10 @@ namespace mocap_optitrack
         {
           serverDescription.enableOptitrack = param.as_bool();
         }
+        else if (param.get_name().find("qos_override") != std::string::npos)
+        {
+          RCLCPP_INFO(node->get_logger(), "Skipping QoS overrides.");
+        }
         else
         {
           result.successful = false;
