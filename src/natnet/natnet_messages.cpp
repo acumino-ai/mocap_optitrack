@@ -198,6 +198,11 @@ void DataFrameMessage::deserialize(
   RCLCPP_DEBUG(logger, "Marker set count: %d", numMarkerSets);
   dataFrame->markerSets.resize(numMarkerSets);
 
+  if (NatNetVersion.v_major >= 4 and NatNetVersion.v_minor > 0) {
+    // NatNet version > 4.0: size of all data for this data type (in bytes);
+    msgBufferIter += 4;
+  }
+
   // Loop through number of marker sets and get name and data
   // TODO: Whether this correctly parses marker sets has not been tested
   int icnt = 0;
@@ -231,6 +236,11 @@ void DataFrameMessage::deserialize(
   dataFrame->otherMarkers.resize(numUnlabeledMarkers);
   RCLCPP_DEBUG(logger, "Unlabled marker count: %d", numUnlabeledMarkers);
 
+  if (NatNetVersion.v_major >= 4 and NatNetVersion.v_minor > 0) {
+    // NatNet version > 4.0: size of all data for this data type (in bytes);
+    msgBufferIter += 4;
+  }
+
   // Loop over unlabled markers
   icnt = 0;
   for (auto& marker : dataFrame->otherMarkers)
@@ -248,6 +258,11 @@ void DataFrameMessage::deserialize(
   utilities::read_and_seek(msgBufferIter, numRigidBodies);
   dataFrame->rigidBodies.resize(numRigidBodies);
   RCLCPP_DEBUG(logger, "Rigid count: %d", numRigidBodies);
+
+  if (NatNetVersion.v_major >= 4 and NatNetVersion.v_minor > 0) {
+    // NatNet version > 4.0: size of all data for this data type (in bytes);
+    msgBufferIter += 4;
+  }
 
   // Loop over rigid bodies
   for (auto& rigidBody : dataFrame->rigidBodies)
