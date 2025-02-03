@@ -57,6 +57,10 @@ namespace mocap_optitrack
           std::bind(&OptiTrackRosBridge::parametersCallback, this, std::placeholders::_1));
     }
 
+    ~OptiTrackRosBridge() {
+      multicastClientSocketPtr.reset();
+    };
+
     void initialize()
     {
       if (serverDescription.enableOptitrack)
@@ -70,9 +74,9 @@ namespace mocap_optitrack
           dataModel.setVersions(&serverDescription.version[0], &serverDescription.version[0]);
         }
 
-        // Need verion information from the server to properly decode any of their packets.
-        // If we have not recieved that yet, send another request.
-        while (rclcpp::ok() && !dataModel.hasServerInfo())
+        // Need version information from the server to properly decode any of their packets.
+        // If we have not received that yet, send another request.
+        while (rclcpp::ok())
         {
           natnet::ConnectionRequestMessage connectionRequestMsg;
           natnet::MessageBuffer connectionRequestMsgBuffer;
@@ -83,6 +87,8 @@ namespace mocap_optitrack
           else sleep(1);
 
           spin_some(node);
+          if (dataModel.hasServerInfo())
+            break;
         }
         // Once we have the server info, create publishers
         publishDispatcherPtr.reset(
