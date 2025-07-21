@@ -14,7 +14,8 @@ target_link_libraries(${PROJECT_NAME}_mocap_node
   ${rclcpp_LIBRARIES}
   ${geometry_msgs_LIBRARIES}
   ${nav_msgs_LIBRARIES}
-  ${tf2_ros_LIBRARIES})
+  ${tf2_ros_LIBRARIES}
+  ${std_srvs_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME}_mocap_node PROPERTIES
                       OUTPUT_NAME mocap_node PREFIX "")
