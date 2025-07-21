@@ -213,6 +213,9 @@ RigidBodyPublishDispatcher::RigidBodyPublishDispatcher(
 {
   for (auto const& config : configs)
   {
+    triggerServiceMap[config.rigidBodyId] = 
+      TriggerServicePtr(new TriggerServiceHandler(node, config));
+
     rigidBodyPublisherMap[config.rigidBodyId] = 
       RigidBodyPublisherPtr(new RigidBodyPublisher(node, natNetVersion, config));
   }
@@ -235,5 +238,41 @@ void RigidBodyPublishDispatcher::publish(
   }
 }
 
+TriggerServiceHandler::~TriggerServiceHandler()
+{
+}
+
+TriggerServiceHandler::TriggerServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config)
+{
+  startServicePtr = node->create_service<std_srvs::srv::Trigger>(
+    "/mocap_node/stream/start/" + config.childFrameId,
+    std::bind(&TriggerServiceHandler::startTriggerCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+  stopServicePtr = node->create_service<std_srvs::srv::Trigger>(
+    "/mocap_node/stream/stop/" + config.childFrameId,
+    std::bind(&TriggerServiceHandler::stopTriggerCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+  RCLCPP_INFO(rclcpp::get_logger("mocap_optitrack"), "Trigger service handlers created for %s", config.childFrameId.c_str());
+}
+
+void TriggerServiceHandler::startTriggerCallback(
+  const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+  std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+{
+  RCLCPP_INFO(rclcpp::get_logger("mocap_optitrack"), "Trigger service called to start");
+  (void)request;
+  response->success = true;
+  response->message = "Triggered";
+}
+
+void TriggerServiceHandler::stopTriggerCallback(
+  const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+  std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+{
+  RCLCPP_INFO(rclcpp::get_logger("mocap_optitrack"), "Trigger service called to stop");
+  (void)request;
+  response->success = true;
+  response->message = "Triggered";
+}
 
 } // namespace

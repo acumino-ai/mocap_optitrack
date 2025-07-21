@@ -38,6 +38,8 @@
 #include <rclcpp/time.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include "std_srvs/srv/trigger.hpp"
+
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <nav_msgs/msg/odometry.hpp>
@@ -72,12 +74,35 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odomPublisher;
 };
 
+class TriggerServiceHandler
+{
+public:
+  TriggerServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config);
+  ~TriggerServiceHandler();
+
+  void startTriggerCallback(
+    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+
+  void stopTriggerCallback(
+    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+
+private:
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr startServicePtr;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stopServicePtr;
+};
+
 /// \brief Dispatches RigidBody data to the correct publisher.
 class RigidBodyPublishDispatcher
 {
     typedef std::shared_ptr<RigidBodyPublisher> RigidBodyPublisherPtr;
     typedef std::map<int,RigidBodyPublisherPtr> RigidBodyPublisherMap;
     RigidBodyPublisherMap rigidBodyPublisherMap;
+
+    typedef std::shared_ptr<TriggerServiceHandler> TriggerServicePtr;
+    typedef std::map<int,TriggerServicePtr> TriggerServiceMap;
+    TriggerServiceMap triggerServiceMap;
 
 public:
     RigidBodyPublishDispatcher(rclcpp::Node::SharedPtr &node, 
