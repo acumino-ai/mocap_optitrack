@@ -230,8 +230,9 @@ void RigidBodyPublishDispatcher::publish(
   for (auto const& rigidBody : rigidBodies)
   {
     auto const& iter = rigidBodyPublisherMap.find(rigidBody.bodyId);
+    auto const& iter_trigger = triggerServiceMap.find(rigidBody.bodyId);
 
-    if (iter != rigidBodyPublisherMap.end())
+    if (iter != rigidBodyPublisherMap.end() && iter_trigger != triggerServiceMap.end() && (*iter_trigger->second).shouldPublishFrame())
     {
       (*iter->second).publish(time, rigidBody, logger);
     }
@@ -261,6 +262,7 @@ void TriggerServiceHandler::startTriggerCallback(
 {
   RCLCPP_INFO(rclcpp::get_logger("mocap_optitrack"), "Trigger service called to start");
   (void)request;
+  shouldPublish = true;
   response->success = true;
   response->message = "Triggered";
 }
@@ -271,6 +273,7 @@ void TriggerServiceHandler::stopTriggerCallback(
 {
   RCLCPP_INFO(rclcpp::get_logger("mocap_optitrack"), "Trigger service called to stop");
   (void)request;
+  shouldPublish = false;
   response->success = true;
   response->message = "Triggered";
 }

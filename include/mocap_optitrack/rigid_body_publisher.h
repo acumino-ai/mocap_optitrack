@@ -88,9 +88,12 @@ public:
     const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
     std::shared_ptr<std_srvs::srv::Trigger::Response> response);
 
+  bool shouldPublishFrame() const { return shouldPublish; }
+
 private:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr startServicePtr;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stopServicePtr;
+  bool shouldPublish = true;
 };
 
 /// \brief Dispatches RigidBody data to the correct publisher.
