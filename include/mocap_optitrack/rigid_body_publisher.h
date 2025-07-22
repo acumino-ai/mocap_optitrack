@@ -38,7 +38,7 @@
 #include <rclcpp/time.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
-#include "std_srvs/srv/trigger.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
@@ -74,25 +74,20 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odomPublisher;
 };
 
-class TriggerServiceHandler
+class EnableServiceHandler
 {
 public:
-  TriggerServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config);
-  ~TriggerServiceHandler();
+  EnableServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config);
+  ~EnableServiceHandler();
 
-  void startTriggerCallback(
-    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
-
-  void stopTriggerCallback(
-    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+  void setBoolServiceCallback(
+    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+    std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
   bool shouldPublishFrame() const { return shouldPublish; }
 
 private:
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr startServicePtr;
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stopServicePtr;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr servicePtr;
   bool shouldPublish = true;
 
   rclcpp::Logger logger_;
@@ -106,9 +101,9 @@ class RigidBodyPublishDispatcher
     typedef std::map<int,RigidBodyPublisherPtr> RigidBodyPublisherMap;
     RigidBodyPublisherMap rigidBodyPublisherMap;
 
-    typedef std::shared_ptr<TriggerServiceHandler> TriggerServicePtr;
-    typedef std::map<int,TriggerServicePtr> TriggerServiceMap;
-    TriggerServiceMap triggerServiceMap;
+    typedef std::shared_ptr<EnableServiceHandler> EnableServicePtr;
+    typedef std::map<int,EnableServicePtr> EnableServiceMap;
+    EnableServiceMap enableServiceMap;
 
 public:
     RigidBodyPublishDispatcher(rclcpp::Node::SharedPtr &node, 
