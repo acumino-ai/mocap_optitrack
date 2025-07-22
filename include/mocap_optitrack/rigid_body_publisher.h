@@ -96,6 +96,7 @@ private:
   bool shouldPublish = true;
 
   rclcpp::Logger logger_;
+  PublisherConfiguration config;
 };
 
 /// \brief Dispatches RigidBody data to the correct publisher.

@@ -243,7 +243,7 @@ TriggerServiceHandler::~TriggerServiceHandler()
 {
 }
 
-TriggerServiceHandler::TriggerServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config): logger_(node->get_logger())
+TriggerServiceHandler::TriggerServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config): logger_(node->get_logger()), config(config)
 {
   startServicePtr = node->create_service<std_srvs::srv::Trigger>(
     "/mocap_node/stream/start/" + config.childFrameId,
@@ -262,6 +262,7 @@ TriggerServiceHandler::TriggerServiceHandler(rclcpp::Node::SharedPtr &node, Publ
     ) {
       stopTriggerCallback(request, response);
     });
+    
   RCLCPP_INFO(logger_, "Trigger service handlers created for %s", config.childFrameId.c_str());
 }
 
@@ -269,22 +270,23 @@ void TriggerServiceHandler::startTriggerCallback(
   const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
   std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
-  RCLCPP_INFO(logger_, "Trigger service called to start");
+  
   (void)request;
   shouldPublish = true;
   response->success = true;
-  response->message = "Triggered";
+  response->message = "Start stream";
+  RCLCPP_INFO(logger_, "Start streaming %s", config.childFrameId.c_str());
 }
 
 void TriggerServiceHandler::stopTriggerCallback(
   const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
   std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
-  RCLCPP_INFO(logger_, "Trigger service called to stop");
   (void)request;
   shouldPublish = false;
   response->success = true;
-  response->message = "Triggered";
+  response->message = "Stop stream";
+  RCLCPP_INFO(logger_, "Stop streaming %s", config.childFrameId.c_str());
 }
 
 } // namespace
