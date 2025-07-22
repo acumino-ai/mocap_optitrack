@@ -246,7 +246,7 @@ TriggerServiceHandler::~TriggerServiceHandler()
 TriggerServiceHandler::TriggerServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config): logger_(node->get_logger()), config(config)
 {
   startServicePtr = node->create_service<std_srvs::srv::Trigger>(
-    "/mocap_node/stream/start/" + config.childFrameId,
+    "~/stream/start/" + config.childFrameId,
     [this](
       const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
       std::shared_ptr<std_srvs::srv::Trigger::Response> response
@@ -255,7 +255,7 @@ TriggerServiceHandler::TriggerServiceHandler(rclcpp::Node::SharedPtr &node, Publ
     });
 
   stopServicePtr = node->create_service<std_srvs::srv::Trigger>(
-    "/mocap_node/stream/stop/" + config.childFrameId,
+    "~/stream/stop/" + config.childFrameId,
     [this](
       const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
       std::shared_ptr<std_srvs::srv::Trigger::Response> response
