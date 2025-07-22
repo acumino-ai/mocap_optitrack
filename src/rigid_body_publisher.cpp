@@ -247,11 +247,21 @@ TriggerServiceHandler::TriggerServiceHandler(rclcpp::Node::SharedPtr &node, Publ
 {
   startServicePtr = node->create_service<std_srvs::srv::Trigger>(
     "/mocap_node/stream/start/" + config.childFrameId,
-    std::bind(&TriggerServiceHandler::startTriggerCallback, this, std::placeholders::_1, std::placeholders::_2));
+    [this](
+      const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+      std::shared_ptr<std_srvs::srv::Trigger::Response> response
+    ) {
+      startTriggerCallback(request, response);
+    });
 
   stopServicePtr = node->create_service<std_srvs::srv::Trigger>(
     "/mocap_node/stream/stop/" + config.childFrameId,
-    std::bind(&TriggerServiceHandler::stopTriggerCallback, this, std::placeholders::_1, std::placeholders::_2));
+    [this](
+      const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+      std::shared_ptr<std_srvs::srv::Trigger::Response> response
+    ) {
+      stopTriggerCallback(request, response);
+    });
 
   RCLCPP_INFO(rclcpp::get_logger("mocap_optitrack"), "Trigger service handlers created for %s", config.childFrameId.c_str());
 }
