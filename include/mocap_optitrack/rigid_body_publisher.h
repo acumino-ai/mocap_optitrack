@@ -94,6 +94,8 @@ private:
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr startServicePtr;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr stopServicePtr;
   bool shouldPublish = true;
+
+  rclcpp::Logger logger_;
 };
 
 /// \brief Dispatches RigidBody data to the correct publisher.
