@@ -213,6 +213,9 @@ RigidBodyPublishDispatcher::RigidBodyPublishDispatcher(
 {
   for (auto const& config : configs)
   {
+    enableServiceMap[config.rigidBodyId] = 
+      EnableServicePtr(new EnableServiceHandler(node, config));
+
     rigidBodyPublisherMap[config.rigidBodyId] = 
       RigidBodyPublisherPtr(new RigidBodyPublisher(node, natNetVersion, config));
   }
@@ -227,13 +230,41 @@ void RigidBodyPublishDispatcher::publish(
   for (auto const& rigidBody : rigidBodies)
   {
     auto const& iter = rigidBodyPublisherMap.find(rigidBody.bodyId);
+    auto const& iter_service = enableServiceMap.find(rigidBody.bodyId);
 
-    if (iter != rigidBodyPublisherMap.end())
+    if (iter != rigidBodyPublisherMap.end() && iter_service != enableServiceMap.end() && (*iter_service->second).shouldPublishFrame())
     {
       (*iter->second).publish(time, rigidBody, logger);
     }
   }
 }
 
+EnableServiceHandler::~EnableServiceHandler()
+{
+}
+
+EnableServiceHandler::EnableServiceHandler(rclcpp::Node::SharedPtr &node, PublisherConfiguration const& config): logger_(node->get_logger()), config(config)
+{
+  servicePtr = node->create_service<std_srvs::srv::SetBool>(
+    "~/stream/" + config.childFrameId,
+    [this](
+      const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+      std::shared_ptr<std_srvs::srv::SetBool::Response> response
+    ) {
+      setBoolServiceCallback(request, response);
+    });
+    
+  RCLCPP_INFO(logger_, "Trigger service handlers created for %s", config.childFrameId.c_str());
+}
+
+void EnableServiceHandler::setBoolServiceCallback(
+  const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+  std::shared_ptr<std_srvs::srv::SetBool::Response> response)
+{
+  shouldPublish = request->data;
+  response->success = true;
+  response->message = "Stream " + config.childFrameId + " : " + (shouldPublish ? "enabled" : "disabled");
+  RCLCPP_INFO(logger_, ("Stream " + config.childFrameId + " : " + (shouldPublish ? "enabled" : "disabled")).c_str());
+}
 
 } // namespace
