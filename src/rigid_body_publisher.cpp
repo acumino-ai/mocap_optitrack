@@ -125,7 +125,7 @@ RigidBodyPublisher::~RigidBodyPublisher()
 {
 }
 
-void RigidBodyPublisher::publish(rclcpp::Time const& time, RigidBody const& body, rclcpp::Logger logger)
+void RigidBodyPublisher::publish(rclcpp::Time const& time, RigidBody const& body)
 {
   // don't do anything if no new data was provided
   if (!body.hasValidData())
@@ -140,41 +140,18 @@ void RigidBodyPublisher::publish(rclcpp::Time const& time, RigidBody const& body
   }
 
   geometry_msgs::msg::PoseStamped pose = utilities::getRosPose(body, coordinatesVersion);
-  nav_msgs::msg::Odometry odom =  utilities::getRosOdom(body, coordinatesVersion);
-
-  double curTimeDifference = time.seconds() - body.trackTimestamp;
-
-  // If timeDifference is 0 it has not yet been set
-  if (timeDifference == 0){
-    RCLCPP_DEBUG(logger, "Initial clock sync: %.0f seconds", curTimeDifference);
-    timeDifference = curTimeDifference;
-  }
-
-  // Clock sync can be improved if the current timeDifference is the lowest seen
-  if (curTimeDifference < timeDifference){
-    RCLCPP_DEBUG(logger, "Improving clock sync by %.5f seconds", timeDifference - curTimeDifference);
-    timeDifference = curTimeDifference;
-  }
-
-  // Calculate correct timestamp using time difference
-  double corStamp = body.trackTimestamp + timeDifference;
-
-  pose.header.stamp = rclcpp::Time((int)corStamp, (corStamp-floor(corStamp)) * 1000000000 );
-  odom.header.stamp = rclcpp::Time((int)corStamp, (corStamp-floor(corStamp)) * 1000000000 );
 
   if (config.publishPose)
   {
+    pose.header.stamp = time;
     pose.header.frame_id = config.parentFrameId;
     posePublisher->publish(pose);
   }
 
-  tf2::Quaternion q(pose.pose.orientation.x,
-                   pose.pose.orientation.y,
-                   pose.pose.orientation.z,
-                   pose.pose.orientation.w);
-
   if (config.publishOdom)
   {
+    nav_msgs::msg::Odometry odom = utilities::getRosOdom(body, coordinatesVersion);
+    odom.header.stamp = time;
     odom.header.frame_id = config.parentFrameId;
     odom.child_frame_id = config.childFrameId;
     odomPublisher->publish(odom);
@@ -183,6 +160,10 @@ void RigidBodyPublisher::publish(rclcpp::Time const& time, RigidBody const& body
   // publish 2D pose
   if (config.publishPose2d)
   {
+    tf2::Quaternion q(pose.pose.orientation.x,
+                      pose.pose.orientation.y,
+                      pose.pose.orientation.z,
+                      pose.pose.orientation.w);
     geometry_msgs::msg::Pose2D pose2d;
     pose2d.x = pose.pose.position.x;
     pose2d.y = pose.pose.position.y;
@@ -223,8 +204,7 @@ RigidBodyPublishDispatcher::RigidBodyPublishDispatcher(
 
 void RigidBodyPublishDispatcher::publish(
   rclcpp::Time const& time, 
-  std::vector<RigidBody> const& rigidBodies,
-  rclcpp::Logger logger
+  std::vector<RigidBody> const& rigidBodies
   )
 {
   for (auto const& rigidBody : rigidBodies)
@@ -234,7 +214,7 @@ void RigidBodyPublishDispatcher::publish(
 
     if (iter != rigidBodyPublisherMap.end() && iter_service != enableServiceMap.end() && (*iter_service->second).shouldPublishFrame())
     {
-      (*iter->second).publish(time, rigidBody, logger);
+      (*iter->second).publish(time, rigidBody);
     }
   }
 }
